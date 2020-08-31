@@ -1,0 +1,479 @@
+/////////////////////////////////////////////
+// UO Steam Society Macro for Tailoring
+// for Outlands
+// by Jewele
+//
+// Crafts a certain number of items
+// required for a society then stops, alerting
+// you when its done.
+//
+// This macro only works for items requiring only
+// hide. All other items (manuals, aspect, etc)
+// you will have to make manually.
+//
+// I highly recommend you pack a pony with hide
+// you need for your job and run it in a town
+// with exceptional bonus. Just select pony
+// as hide source.
+//
+// This macro IS NOT for making exceptionals
+// you want to save. Everything is salvaged.
+// If you want to make exceptionals, use
+// Tailor.txt and stop when your society
+// is completed.
+//
+// *************************
+// ITEM NAMES -- IMPORTANT!!
+// *************************
+//
+// There are discrepancies between the item name
+// in the society and the item name in your pack.
+//
+// When in doubt, look in my list below.
+//
+// How to use:
+// ===========
+// 1) Stock pack with sewing kits (10-20)
+// 2) Stock pony with leather, go to Craft Bonus town
+// 3) Modify section below
+// 4) Run
+//
+// Sounds:
+// =======
+// Please make sure following sounds files exist:
+// ...\UOSteam\Sounds\uhoh.wav
+// ...\UOSteam\Sounds\cymbals.wav
+//
+// NOTES:
+// ======
+// * Recycles every 10 items
+//
+// UOSTEAM COPY-PASTE BELOW THIS LINE
+/////////////////////////////////////////////
+sysmsg "UOSteam Tailoring Society Macro" 75
+@removelist 'hide'
+@createlist 'hide'
+@removelist 'make'
+@createlist 'make'
+//
+// MODIFY START -------->>>
+@pushlist 'hide' 'regular'
+@pushlist 'make' 'studded gloves'
+// <<<-------- MODIFY END
+//
+//
+// User hide check
+//
+@removelist 'hidecolor'
+@createlist 'hidecolor'
+if @inlist 'hide' 'regular'
+  pushlist 'hidecolor' 0
+elseif @inlist 'hide' 'dullhide'
+  pushlist 'hidecolor' 2419
+elseif @inlist 'hide' 'shadowhide'
+  pushlist 'hidecolor' 2406
+elseif @inlist 'hide' 'copperhide'
+  pushlist 'hidecolor' 2413
+elseif @inlist 'hide' 'bronzehide'
+  pushlist 'hidecolor' 2418
+elseif @inlist 'hide' 'goldhide'
+  pushlist 'hidecolor' 2213
+elseif @inlist 'hide' 'rosehide'
+  pushlist 'hidecolor' 2425
+elseif @inlist 'hide' 'verehide'
+  pushlist 'hidecolor' 2207
+elseif @inlist 'hide' 'valehide'
+  pushlist 'hidecolor' 2219
+elseif @inlist 'hide' 'avarhide'
+  pushlist 'hidecolor' 1763
+else
+  headmsg "ERROR" 44
+  sysmsg "Unknown type of hide requested!" 44
+  stop
+endif
+//
+// Open backpack
+//
+@useobject 'backpack'
+pause 1000
+//
+// Set alias
+//
+if not @findalias 'hidebox'
+  sysmsg "Select chest or pony with materials"
+  promptalias 'hidebox'
+endif
+@useobject 'hidebox'
+pause 2500
+//
+// Move all hide from pack to hidebox (reset)
+//
+while @findtype 0x1081 'any' 'backpack'
+  sysmsg "dumping"
+  moveitem  'found' 'hidebox'
+  pause 2000
+endwhile
+//
+// Verify with player
+//
+// Check sewing kits
+//
+if not @findtype 0xf9d 'any' 'backpack'
+  headmsg 'I have no sewing kits!' 66
+  playsound 'uhoh.wav'
+  stop
+endif
+//
+// Bring up menu
+//
+@usetype 0xf9d
+waitforgump 0x38920abd 5000
+//
+// Select hide
+//
+while not @ingump 0x38920abd hide[0]
+  @replygump 0x38920abd 13
+  waitforgump 0x38920abd 5000
+endwhile
+//
+// Select Recycle
+//
+while not @ingump 0x38920abd 'Recycle All (of Type)'
+  @replygump 0x38920abd 2
+  waitforgump 0x38920abd 5000
+endwhile
+//
+// Make items
+//
+@clearjournal
+while not @injournal "completed a society job" 'System'
+  //
+  // World save
+  //
+  if @injournal 'will save' 'system'
+    sysmsg "pausing for world save" 66
+    pause 30000
+    @clearjournal
+  endif
+  //
+  // Check weight
+  //
+  if diffweight < 10
+    headmsg 'I am too heavy, please unload me' '88'
+    playsound 'uhoh.wav'
+    pause 5000
+    continue
+  endif
+  //
+  // Verify with player
+  //
+  pause 1000
+  sysmsg "Making:" 85
+  sysmsg "make[0]" 88
+  sysmsg "with:" 85
+  sysmsg "hide[0]" 88
+  //
+  // Check or restock hides
+  //
+  if @counttype 0x1081 hidecolor[0] 'backpack' <  25
+    sysmsg "restocking"
+    useobject 'hidebox'
+    pause 1000
+    movetype 0x1081 'hidebox' 'backpack' 0 0 0 hidecolor[0] 200
+    pause 1000
+  endif
+  //
+  // Verify hides
+  //
+  if @counttype 0x1081 hidecolor[0] 'backpack' <  25
+    playsound 'uhoh.wav'
+    headmsg 'I cannot restock hides!' '88'
+    stop
+  endif
+  //
+  // Check sewing kits
+  //
+  if not @findtype 0xf9d 'any' 'backpack'
+    headmsg 'I have no sewing kits!' 66
+    playsound 'uhoh.wav'
+    stop
+  endif
+  //
+  // Make
+  //
+  @removelist 'typeid'
+  @createlist 'typeid'
+  if @inlist 'make' 'bone gorget'
+    pushlist 'typeid' 0x13d6
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 100
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 200
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'bone gloves'
+    pushlist 'typeid' 0x1455
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 100
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 201
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'bone helm'
+    pushlist 'typeid' 0x1451
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 100
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 202
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'bone arms'
+    pushlist 'typeid' 0x1453
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 100
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 203
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'bone legs'
+    pushlist 'typeid' 0x1457
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 100
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 204
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'bone skirt'
+    pushlist 'typeid' 0x1c09
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 100
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 205
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'bone chest'
+    pushlist 'typeid' 0x1454
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 100
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 206
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'leather gorget'
+    pushlist 'typeid' 0x13c7
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 101
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 200
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'leather gloves'
+    pushlist 'typeid' 0x13ce
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 101
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 201
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'leather cap'
+    pushlist 'typeid' 0x1dba
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 101
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 202
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'leather arms'
+    pushlist 'typeid' 0x13c5
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 101
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 203
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'leather legs'
+    pushlist 'typeid' 0x13d2
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 101
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 204
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'leather shorts'
+    pushlist 'typeid' 0x1c01
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 101
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 205
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'leather skirt'
+    pushlist 'typeid' 0x1c09
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 101
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 206
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'leather chest'
+    pushlist 'typeid' 0x13d3
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 101
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 207
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'leather bustier'
+    pushlist 'typeid' 0x1c0b
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 101
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 208
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'female leather chest'
+    pushlist 'typeid' 0x1c07
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 101
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 209
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'studded gorget'
+    pushlist 'typeid' 0x13d6
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 102
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 200
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'studded gloves'
+    pushlist 'typeid' 0x13dd
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 102
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 201
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'studded cap'
+    pushlist 'typeid' 0x1dba
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 102
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 202
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'studded arms'
+    pushlist 'typeid' 0x13d4
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 102
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 203
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'studded legs'
+    pushlist 'typeid' 0x13e1
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 102
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 204
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'studded skirt'
+    pushlist 'typeid' 0x1c09
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 102
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 205
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'studded chest'
+    pushlist 'typeid' 0x13e2
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 102
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 206
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'studded bustier'
+    pushlist 'typeid' 0x1c0d
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 102
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 207
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  elseif @inlist 'make' 'studded female chest'
+    pushlist 'typeid' 0x1c02
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 102
+    waitforgump 0x38920abd 5000
+    replygump 0x38920abd 208
+    waitforgump 0x38920abd 5000
+    waitforgump 0x38920abd 5000
+  endif
+  msg "Guards"
+  //
+  // Check drops
+  //
+  if @findtype 'typeid[0]' 'any' 'ground'
+    headmsg 'I am dropping items! Do I have room in my pack?' '88'
+    playsound 'uhoh.wav'
+    stop
+  endif
+  //
+  // Recycle
+  //
+  if @counttype typeid[0] 'any' 'backpack' >= 10
+    @canceltarget
+    sysmsg "Recycling" 66
+    usetype 0xf9d
+    waitforgump 0x38920abd 5000
+    while @findtype typeid[0] 'any' 'backpack'
+      waitforgump 0x38920abd 2000
+      replygump 0x38920abd 3
+      waitfortarget 5000
+      target! 'found'
+      pause 2500
+    endwhile
+  endif
+endwhile
+//
+// Burn off the extras if found
+//
+while @findtype typeid[0] 'any' 'backpack'
+  @usetype 0xf9d
+  waitforgump 0x38920abd 5000
+  replygump 0x38920abd 3
+  waitfortarget 5000
+  target! 'found'
+  pause 5000
+endwhile
+playsound 'cymbals.wav'
+headmsg "All done!" 55
